@@ -128,7 +128,9 @@ export default function UploadPage() {
           <input type="text" placeholder="Year" value={year} onChange={e=>setYear(e.target.value)} className="w-full mb-3 p-3 rounded-xl bg-[#0f172a]" />
           <textarea placeholder="Description" value={description} onChange={e=>setDescription(e.target.value)} className="w-full mb-3 p-3 rounded-xl bg-[#0f172a]" />
           <input type="file" accept=".pdf" onChange={e=>setPdf(e.target.files[0])} className="w-full mb-3 p-3 rounded-xl bg-[#0f172a]" />
-          <button onClick={uploadPaper} className="w-full bg-blue-600 py-3 rounded-xl font-bold hover:bg-blue-700">{loading ? "Uploading..." : "Upload Paper"}</button>
+          <button onClick={editingId ? updatePaper : uploadPaper} className="w-full bg-blue-600 py-3 rounded-xl font-bold hover:bg-blue-700">
+            {loading ? "Uploading..." : editingId ? "Update Paper" : "Upload Paper"}
+          </button>
         </div>
 
         {/* PAPERS LIST */}
