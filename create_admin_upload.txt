@@ -1,0 +1,87 @@
+@echo off
+REM ===============================
+REM Auto-create Admin Upload page for Vercel
+REM ===============================
+
+SETLOCAL
+
+REM Navigate to project root
+cd C:\Users\hp\paperlix-app
+
+REM 1️⃣ Create folder if missing
+IF NOT EXIST app\admin\upload (
+    mkdir app\admin\upload
+)
+
+REM 2️⃣ Create page.js file with final code
+(
+echo "use client";
+echo export const dynamic = "force-dynamic";
+echo.
+echo import { useEffect, useState } from "react";
+echo import { createClient } from "@supabase/supabase-js";
+echo.
+echo const supabase = createClient( ^
+echo     process.env.NEXT_PUBLIC_SUPABASE_URL, ^
+echo     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ^
+echo );
+echo.
+echo export default function UploadPage() {
+echo     const [papers,setPapers] = useState([]);
+echo     const [title,setTitle] = useState("");
+echo     const [category,setCategory] = useState("");
+echo     const [description,setDescription] = useState("");
+echo     const [year,setYear] = useState("");
+echo     const [pdf,setPdf] = useState(null);
+echo     const [loading,setLoading] = useState(false);
+echo.
+echo     useEffect(() => {
+echo         const fetchPapers = async () => {
+echo             const { data } = await supabase.from("papers").select("*").order("id",{ascending:false});
+echo             setPapers(data||[]);
+echo         };
+echo         fetchPapers();
+echo     }, []);
+echo.
+echo     const uploadPaper = async () => {
+echo         if (!pdf) return alert("Select a PDF");
+echo         setLoading(true);
+echo         const fileExt = pdf.name.split(".").pop();
+echo         const fileName = `%DATE%_%TIME%.${fileExt}`;
+echo         const { error: uploadError } = await supabase.storage.from("papers").upload(fileName,pdf);
+echo         if (uploadError) { alert(uploadError.message); setLoading(false); return; }
+echo         const pdf_url = `https://oicvndvrhnfoaexoflxe.supabase.co/storage/v1/object/public/papers/${fileName}`;
+echo         const { error: insertError } = await supabase.from("papers").insert([{title,category,description,year,pdf_url}]);
+echo         if (insertError) { alert(insertError.message); setLoading(false); return; }
+echo         alert("Uploaded successfully");
+echo         setTitle(""); setCategory(""); setDescription(""); setYear(""); setPdf(null);
+echo         setLoading(false);
+echo         const { data } = await supabase.from("papers").select("*").order("id",{ascending:false});
+echo         setPapers(data||[]);
+echo     };
+echo.
+echo     return (<div style={{padding:"20px",color:"white",background:"#020817"}}>
+echo         <h1>Admin Upload Page</h1>
+echo         <input placeholder="Title" onChange={e=>setTitle(e.target.value)} value={title} />
+echo         <input placeholder="Category" onChange={e=>setCategory(e.target.value)} value={category} />
+echo         <input placeholder="Year" onChange={e=>setYear(e.target.value)} value={year} />
+echo         <textarea placeholder="Description" onChange={e=>setDescription(e.target.value)} value={description}></textarea>
+echo         <input type="file" accept=".pdf" onChange={e=>setPdf(e.target.files[0])} />
+echo         <button onClick={uploadPaper}>{loading?"Uploading...":"Upload Paper"}</button>
+echo         <h2>Uploaded Papers</h2>
+echo         <ul>{papers.map(p=><li key={p.id}>{p.title} - {p.category} - {p.year} | <a href={p.pdf_url} target="_blank">View PDF</a></li>)}</ul>
+echo     </div>);
+echo }
+) > app\admin\upload\page.js
+
+echo.
+echo ✅ page.js created successfully at app\admin\upload\page.js
+
+REM 3️⃣ Git add, commit, push
+git add .
+git commit -m "Auto-create admin/upload page ready for Vercel"
+git push
+
+echo.
+echo 🚀 UploadPage ready and pushed. Redeploy on Vercel.
+pause
