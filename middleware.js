@@ -1,15 +1,30 @@
 import { NextResponse } from "next/server";
 
-export function middleware(request) {
-  const isLoggedIn = request.cookies.get("sb-access-token");
+/**
+ * Example Middleware
+ * - Automatically runs on all requests
+ * - Currently just logs request path (non-blocking)
+ * - Compatible with Next.js 16+
+ */
 
-  if (!isLoggedIn && request.nextUrl.pathname.startsWith("/admin")) {
-    return NextResponse.redirect(new URL("/login", request.url));
+export function middleware(request) {
+  console.log("Middleware hit:", request.nextUrl.pathname);
+
+  // Example: Redirect /old-path to /new-path
+  if (request.nextUrl.pathname === "/old-path") {
+    return NextResponse.redirect(new URL("/new-path", request.url));
   }
 
+  // Example: Optional auth check (can customize)
+  // if (!request.cookies.get("auth_token")) {
+  //   return NextResponse.redirect(new URL("/login", request.url));
+  // }
+
+  // Otherwise, continue
   return NextResponse.next();
 }
 
+// Optional: Match all routes (adjust if needed)
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: "/:path*",
 };
